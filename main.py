@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-import webapp2, oauth2, httplib2, urlparse, urllib
+import webapp2, oauth2, httplib2, urlparse, urllib, mimetypes
 
 KEY = '***REMOVED***'
 SECRET = '***REMOVED***'
@@ -43,20 +43,34 @@ class pageAccess(webapp2.RequestHandler, dropbox):
         
 class pageUpload(webapp2.RequestHandler, dropbox):
     def post(self):
-        if(len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')) and len(self.request.get('image'))):
+        if(len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')) 
+        and len(self.request.get('body')) and len(self.request.get('name'))):
             token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
-            headers = {'content-type':'image/jpeg', 'content-length' : str(len(self.request.get('image')))}
-            url = self.sign("https://api-content.dropbox.com/1/files_put/sandbox/teszt.jpg", token, 'PUT')
-            
-            resp, content = httplib2.Http().request(url, 'PUT', body = self.request.get('image'), headers = headers)
+            headers = {'content-type' : mimetypes.guess_type(self.request.get('name')), 'content-length' : str(len(self.request.get('body')))}
+            url = self.sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" % self.request.get('name'), token, 'PUT')
+            resp, content = httplib2.Http().request(url, 'PUT', body = self.request.get('body'), headers = headers)
         
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.write(content)
         else: self.error(400)
-            
+        
+class pageShare(webapp2.RequestHandler, dropbox):
+    def get(self):
+        if(len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')) 
+        and len(self.request.get('short')) and len(self.request.get('name'))):
+            token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
+            url = self.sign("https://api.dropbox.com/1/shares/sandbox/%s?%s" % (self.request.get('name'), 
+                            urllib.urlencode({'short_url' : self.request.get('short')})), token, 'POST')
+            resp, content = httplib2.Http().request(url, 'POST')
+        
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.write(content)
+        else: self.error(400)
 
 app = webapp2.WSGIApplication([
     ('/authorize', pageAuthorize),
     ('/access', pageAccess),
     ('/upload', pageUpload),
-], debug = True)
+    ('/share', pageShare),
+    webapp2.Route('/', webapp2.RedirectHandler, defaults = {'_uri' : 'https://code.google.com/p/jamcrop/'})
+], debug = False)
