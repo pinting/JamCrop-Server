@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+__author__ = "Tornyi Dénes"
+__version__ = "1.0.0"
+
+KEY = '***REMOVED***'
+SECRET = '***REMOVED***'
+
 
 import mimetypes
 import httplib2
@@ -10,11 +16,7 @@ import oauth2
 import urllib
 
 
-KEY = '***REMOVED***'
-SECRET = '***REMOVED***'
-
-
-class dropbox():
+class Dropbox():
     def authorize(self):
 
         """ Get a request token from the Dropbox """
@@ -51,7 +53,7 @@ class dropbox():
         return request.to_url()
 
 
-class pageAuthorize(webapp2.RequestHandler, dropbox):
+class AuthorizePage(webapp2.RequestHandler, Dropbox):
     def get(self):
 
         """ Show authorize page with GET method """
@@ -61,7 +63,7 @@ class pageAuthorize(webapp2.RequestHandler, dropbox):
         self.response.write(urllib.urlencode(request_token))
 
 
-class pageAccess(webapp2.RequestHandler, dropbox):
+class AccessPage(webapp2.RequestHandler, Dropbox):
     def get(self):
 
         """ Show access page with GET method
@@ -77,7 +79,7 @@ class pageAccess(webapp2.RequestHandler, dropbox):
         else: self.error(400)
 
 
-class pageUpload(webapp2.RequestHandler, dropbox):
+class UploadPage(webapp2.RequestHandler, Dropbox):
     def post(self):
 
         """ Show upload page with POST method
@@ -101,7 +103,7 @@ class pageUpload(webapp2.RequestHandler, dropbox):
         else: self.error(400)
 
 
-class pageShare(webapp2.RequestHandler, dropbox):
+class SharePage(webapp2.RequestHandler, Dropbox):
     def get(self):
 
         """ Show share page with GET method
@@ -125,9 +127,9 @@ class pageShare(webapp2.RequestHandler, dropbox):
 
 
 app = webapp2.WSGIApplication([
-    ('/authorize', pageAuthorize),
-    ('/access', pageAccess),
-    ('/upload', pageUpload),
-    ('/share', pageShare),
+    ('/authorize', AuthorizePage),
+    ('/access', AccessPage),
+    ('/upload', UploadPage),
+    ('/share', SharePage),
     webapp2.Route('/', webapp2.RedirectHandler, defaults = {'_uri': 'https://code.google.com/p/jamcrop/'})
 ], debug = False)
