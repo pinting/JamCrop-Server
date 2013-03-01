@@ -4,6 +4,7 @@
 __author__ = "Tornyi Dénes"
 __version__ = "1.0.0"
 
+
 KEY = '***REMOVED***'
 SECRET = '***REMOVED***'
 
@@ -38,7 +39,7 @@ class Dropbox():
         respone, content = client.request("https://api.dropbox.com/1/oauth/access_token", 'POST')
         return dict(urlparse.parse_qsl(content))
         
-    def sign(self, url, token, method = 'PUT', parameters = {}):
+    def sign(self, url, token, method = 'PUT', parameters = None):
 
         """ Sign the give URL with oauth signature
         :param url: URL to sign
