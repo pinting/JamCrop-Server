@@ -72,7 +72,7 @@ class AccessPage(webapp2.RequestHandler, Dropbox):
         :urlparam oauth_token_secret: Secret requested by the authorize page
         """
 
-        if len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')):
+        if self.request.get('oauth_token') and self.request.get('oauth_token_secret'):
             access_token = self.access({'oauth_token': self.request.get('oauth_token'),
                                         'oauth_token_secret': self.request.get('oauth_token_secret')})
             self.response.headers['Content-Type'] = 'text/plain'
@@ -90,10 +90,10 @@ class UploadPage(webapp2.RequestHandler, Dropbox):
         :urlparam name: File name
         """
 
-        if len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')) and \
-           len(self.request.get('body')) and len(self.request.get('name')):
+        if self.request.get('oauth_token') and self.request.get('oauth_token_secret') and self.request.get('body') and \
+           self.request.get('name') and mimetypes.guess_type("lofasz.jpg")[0] == 'image/pjpeg':
             token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
-            headers = {'content-type': mimetypes.guess_type(self.request.get('name')),
+            headers = {'content-type': 'image/pjpeg',
                        'content-length': str(len(self.request.get('body')))}
             url = self.sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
                             self.request.get('name'), token, 'PUT')
@@ -114,8 +114,8 @@ class SharePage(webapp2.RequestHandler, Dropbox):
         :urlparam name: File name
         """
 
-        if len(self.request.get('oauth_token')) and len(self.request.get('oauth_token_secret')) and \
-           len(self.request.get('short')) and len(self.request.get('name')):
+        if self.request.get('oauth_token') and self.request.get('oauth_token_secret') and \
+           self.request.get('short') and self.request.get('name'):
             token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
             url = self.sign("https://api.dropbox.com/1/shares/sandbox/%s?%s" %
                             (self.request.get('name'),
