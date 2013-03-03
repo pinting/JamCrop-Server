@@ -26,7 +26,7 @@ class Dropbox():
         client = oauth2.Client(consumer)
         respone, content = client.request("https://api.dropbox.com/1/oauth/request_token", 'GET')
         return dict(urlparse.parse_qsl(content))
-    
+
     def access(self, request_token):
 
         """ Get an access token from the Dropbox
@@ -38,7 +38,7 @@ class Dropbox():
         client = oauth2.Client(consumer, token)
         respone, content = client.request("https://api.dropbox.com/1/oauth/access_token", 'POST')
         return dict(urlparse.parse_qsl(content))
-        
+
     def sign(self, url, token, method = 'PUT', parameters = None):
 
         """ Sign the give URL with oauth signature
@@ -77,7 +77,8 @@ class AccessPage(webapp2.RequestHandler, Dropbox):
                                         'oauth_token_secret': self.request.get('oauth_token_secret')})
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.write(urllib.urlencode(access_token))
-        else: self.error(400)
+        else:
+            self.error(400)
 
 
 class UploadPage(webapp2.RequestHandler, Dropbox):
@@ -91,17 +92,19 @@ class UploadPage(webapp2.RequestHandler, Dropbox):
         """
 
         if self.request.get('oauth_token') and self.request.get('oauth_token_secret') and self.request.get('body') and \
-           self.request.get('name') and mimetypes.guess_type("lofasz.jpg")[0] == 'image/pjpeg':
+           self.request.get('name') and (mimetypes.guess_type(self.request.get('name'))[0] == 'image/jpeg' or
+                                                mimetypes.guess_type(self.request.get('name'))[0] == 'image/pjpeg'):
             token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
-            headers = {'content-type': 'image/pjpeg',
+            headers = {'content-type': 'image/jpeg',
                        'content-length': str(len(self.request.get('body')))}
             url = self.sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
                             self.request.get('name'), token, 'PUT')
             resp, content = httplib2.Http().request(url, 'PUT', body = self.request.get('body'), headers = headers)
-        
+
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.write(content)
-        else: self.error(400)
+        else:
+            self.error(400)
 
 
 class SharePage(webapp2.RequestHandler, Dropbox):
@@ -121,10 +124,11 @@ class SharePage(webapp2.RequestHandler, Dropbox):
                             (self.request.get('name'),
                              urllib.urlencode({'short_url': self.request.get('short')})), token, 'POST')
             resp, content = httplib2.Http().request(url, 'POST')
-        
+
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.write(content)
-        else: self.error(400)
+        else:
+            self.error(400)
 
 
 app = webapp2.WSGIApplication([
