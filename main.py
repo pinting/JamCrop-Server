@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 __author__ = "Tornyi Dénes"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 KEY = '***REMOVED***'
@@ -24,7 +24,7 @@ class Dropbox():
 
         consumer = oauth2.Consumer(KEY, SECRET)
         client = oauth2.Client(consumer)
-        respone, content = client.request("https://api.dropbox.com/1/oauth/request_token", 'GET')
+        response, content = client.request("https://api.dropbox.com/1/oauth/request_token", 'GET')
         return dict(urlparse.parse_qsl(content))
 
     def access(self, request_token):
@@ -36,7 +36,7 @@ class Dropbox():
         token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
         consumer = oauth2.Consumer(KEY, SECRET)
         client = oauth2.Client(consumer, token)
-        respone, content = client.request("https://api.dropbox.com/1/oauth/access_token", 'POST')
+        response, content = client.request("https://api.dropbox.com/1/oauth/access_token", 'POST')
         return dict(urlparse.parse_qsl(content))
 
     def sign(self, url, token, method = 'PUT', parameters = None):
