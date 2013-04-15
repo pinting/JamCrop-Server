@@ -96,10 +96,11 @@ def uploadPage():
     if flask.request.args.get('oauth_token') and flask.request.args.get('oauth_token_secret') and \
        flask.request.files.get('body') and flask.request.args.get('name') and \
            (mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/jpeg' or
-                    mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/pjpeg'):
+                    mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/pjpeg' or
+                        mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/png'):
 
         body = flask.request.files.get('body')
-        headers = {'content-type': 'image/jpeg',
+        headers = {'content-type': mimetypes.guess_type(flask.request.args.get('name'))[0],
                    'content-length': str(len(body.read()))}
         token = oauth2.Token(flask.request.args.get('oauth_token'), flask.request.args.get('oauth_token_secret'))
         url = sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
