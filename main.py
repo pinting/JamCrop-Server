@@ -91,11 +91,14 @@ class UploadPage(webapp2.RequestHandler, Dropbox):
         :urlparam name: File name
         """
 
+        print(mimetypes.guess_type(self.request.get('name'))[0])
+
         if self.request.get('oauth_token') and self.request.get('oauth_token_secret') and self.request.get('body') and \
            self.request.get('name') and (mimetypes.guess_type(self.request.get('name'))[0] == 'image/jpeg' or
-                                                mimetypes.guess_type(self.request.get('name'))[0] == 'image/pjpeg'):
+                                            mimetypes.guess_type(self.request.get('name'))[0] == 'image/pjpeg' or
+                                                    mimetypes.guess_type(self.request.get('name'))[0] == 'image/png'):
             token = oauth2.Token(self.request.get('oauth_token'), self.request.get('oauth_token_secret'))
-            headers = {'content-type': 'image/jpeg',
+            headers = {'content-type': mimetypes.guess_type(self.request.get('name'))[0],
                        'content-length': str(len(self.request.get('body')))}
             url = self.sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
                             self.request.get('name'), token, 'PUT')
