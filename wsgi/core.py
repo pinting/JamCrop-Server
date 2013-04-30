@@ -76,7 +76,9 @@ def uploadPage():
 
     if flask.request.args.get('oauth_token') and flask.request.args.get('oauth_token_secret') and \
        flask.request.args.get('name') and (mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/pjpeg' or
-                                           mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/x-png'):
+                                           mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/x-png' or
+                                           mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/jpeg' or
+                                           mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/png'):
         token = oauth2.Token(flask.request.args.get('oauth_token'), flask.request.args.get('oauth_token_secret'))
         headers = {'content-type': mimetypes.guess_type(flask.request.args.get('name'))[0],
                    'content-length': flask.request.headers.get('content-length')}
