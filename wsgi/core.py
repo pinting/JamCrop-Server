@@ -22,9 +22,6 @@ app = flask.Flask(__name__)
 
 
 def authorize():
-
-    """ Get a request token from the Dropbox """
-
     consumer = oauth2.Consumer(KEY, SECRET)
     client = oauth2.Client(consumer)
     response, content = client.request("https://api.dropbox.com/1/oauth/request_token", 'GET')
@@ -32,11 +29,6 @@ def authorize():
 
 
 def access(request_token):
-
-    """ Get an access token from the Dropbox
-    :param request_token: Recently got request token.
-    """
-
     token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
     consumer = oauth2.Consumer(KEY, SECRET)
     client = oauth2.Client(consumer, token)
@@ -45,14 +37,6 @@ def access(request_token):
 
 
 def sign(url, token, method = 'PUT', parameters = None):
-
-    """ Sign the give URL with oauth signature
-    :param url: URL to sign
-    :param token: Dropbox token
-    :param method: HTTP method (POST, GET, etc.)
-    :param parameters: Additional parameters
-    """
-
     consumer = oauth2.Consumer(KEY, SECRET)
     request = oauth2.Request.from_consumer_and_token(consumer, token, method, url, parameters)
     request.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), consumer, token)
@@ -61,18 +45,15 @@ def sign(url, token, method = 'PUT', parameters = None):
 
 @app.route("/authorize", methods=['GET'])
 def authorizePage():
-
-    """ Show authorize page with GET method """
-
     return str(urllib.urlencode(authorize()))
 
 
 @app.route("/access", methods=['GET'])
 def accessPage():
 
-    """ Show access page with GET method
-    :urlparam oauth_token: Token requested by the authorize page
-    :urlparam oauth_token_secret: Secret requested by the authorize page
+    """ Get an access token by the request token
+    :get oauth_token: Token requested by the authorize page
+    :get oauth_token_secret: Secret requested by the authorize page
     """
 
     if flask.request.args.get('oauth_token') and flask.request.args.get('oauth_token_secret'):
@@ -86,32 +67,27 @@ def accessPage():
 @app.route("/upload", methods=['POST'])
 def uploadPage():
 
-    """ Show upload page with POST method
-    :urlparam oauth_token: Token requested by the authorize page
-    :urlparam oauth_token_secret: Secret requested by the authorize page
-    :urlparam body: File body for upload
-    :urlparam name: File name
+    """ Upload screenshot to the server
+    :http body: Body of the file
+    :get oauth_token: Token requested by the authorize page
+    :get oauth_token_secret: Secret requested by the authorize page
+    :get name: Name of the file
     """
 
     if flask.request.args.get('oauth_token') and flask.request.args.get('oauth_token_secret') and \
-       flask.request.files.get('body') and flask.request.args.get('name') and \
-           (mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/jpeg' or
-                    mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/pjpeg' or
-                        mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/png'):
-
-        body = flask.request.files.get('body')
-        headers = {'content-type': mimetypes.guess_type(flask.request.args.get('name'))[0],
-                   'content-length': str(len(body.read()))}
+       flask.request.args.get('name') and (mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/pjpeg' or
+                                           mimetypes.guess_type(flask.request.args.get('name'))[0] == 'image/x-png'):
         token = oauth2.Token(flask.request.args.get('oauth_token'), flask.request.args.get('oauth_token_secret'))
+        headers = {'content-type': mimetypes.guess_type(flask.request.args.get('name'))[0],
+                   'content-length': flask.request.headers.get('content-length')}
         url = sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
                    flask.request.args.get('name'), token, 'PUT')
 
         opener = poster.streaminghttp.register_openers()
-        request = urllib2.Request(url, body.stream, headers)
+        request = urllib2.Request(url, flask.request.environ.get('wsgi.input')._rbuf, headers)
         request.get_method = lambda: 'PUT'
         content = opener.open(request)
 
-        body.close()
         return content.read()
     else:
         flask.abort(400)
@@ -120,19 +96,18 @@ def uploadPage():
 @app.route("/share", methods=['GET'])
 def sharePage():
 
-    """ Show share page with GET method
-    :urlparam oauth_token: Token requested by the authorize page
-    :urlparam oauth_token_secret: Secret requested by the authorize page
-    :urlparam short: Length of the URL (if it is false, it will be long)
-    :urlparam name: File name
+    """ Get the uploaded screenshot URL
+    :get oauth_token: Token requested by the authorize page
+    :get oauth_token_secret: Secret requested by the authorize page
+    :get short: Length of the URL (if it is false, it will be long)
+    :get name: Name of the file
     """
 
     if flask.request.args.get('oauth_token') and flask.request.args.get('oauth_token_secret') and \
        flask.request.args.get('short') and flask.request.args.get('name'):
         token = oauth2.Token(flask.request.args.get('oauth_token'), flask.request.args.get('oauth_token_secret'))
-        url = sign("https://api.dropbox.com/1/shares/sandbox/%s?%s" %
-                        (flask.request.args.get('name'),
-                         urllib.urlencode({'short_url': flask.request.args.get('short')})), token, 'POST')
+        url = sign("https://api.dropbox.com/1/shares/sandbox/%s?%s" % (flask.request.args.get('name'),
+                   urllib.urlencode({'short_url': flask.request.args.get('short')})), token, 'POST')
 
         opener = poster.streaminghttp.register_openers()
         request = urllib2.Request(url)
