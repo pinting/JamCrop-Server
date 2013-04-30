@@ -10,7 +10,7 @@ If you have any advice, please write to us.
 """
 
 
-__author__ = ["Dénes Tornyi", "Ádám Tajti"]
+__author__ = "Dénes Tornyi"
 __version__ = "1.1.0"
 
 
