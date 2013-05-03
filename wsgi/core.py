@@ -9,7 +9,8 @@ KEY = '***REMOVED***'
 SECRET = '***REMOVED***'
 
 
-import poster.streaminghttp
+from poster.streaminghttp import register_openers
+import cStringIO
 import mimetypes
 import urlparse
 import urllib2
@@ -85,12 +86,16 @@ def uploadPage():
         url = sign("https://api-content.dropbox.com/1/files_put/sandbox/%s" %
                    flask.request.args.get('name'), token, 'PUT')
 
-        opener = poster.streaminghttp.register_openers()
-        request = urllib2.Request(url, flask.request.environ.get('wsgi.input')._rbuf, headers)
-        request.get_method = lambda: 'PUT'
-        content = opener.open(request)
+        body = flask.request.environ.get('wsgi.input')
+        buf = body.read(int(flask.request.headers.get('content-length')))
+        datagen = cStringIO.StringIO(buf)
 
-        return content.read()
+        opener = register_openers()
+        request = urllib2.Request(url, datagen, headers)
+        request.get_method = lambda: 'PUT'
+        result = opener.open(request)
+
+        return result.read()
     else:
         flask.abort(400)
 
@@ -111,12 +116,12 @@ def sharePage():
         url = sign("https://api.dropbox.com/1/shares/sandbox/%s?%s" % (flask.request.args.get('name'),
                    urllib.urlencode({'short_url': flask.request.args.get('short')})), token, 'POST')
 
-        opener = poster.streaminghttp.register_openers()
+        opener = register_openers()
         request = urllib2.Request(url)
         request.get_method = lambda: 'POST'
-        content = opener.open(request)
+        result = opener.open(request)
 
-        return content.read()
+        return result.read()
     else:
         flask.abort(400)
 
