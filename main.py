@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-"""
 
-
-"""
-JamCropxy
-
-If you have any advice, please write to us.
-- Google Code: https://code.google.com/p/jamcrop/
-"""
-
-
 __author__ = "Dénes Tornyi"
 __version__ = "1.1.0"
 
