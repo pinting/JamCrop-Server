@@ -131,7 +131,7 @@ def mainPage():
 
     """ Redirect to home """
 
-    return flask.redirect("https://code.google.com/p/jamcrop/")
+    return flask.redirect("https://github.com/pinting/JamCrop")
 
 
 if __name__ == "__main__":
